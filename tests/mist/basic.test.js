@@ -168,7 +168,7 @@ test['Pin tab test'] = function* () {
     const client = this.client;
     const sidebarItems = (yield client.elements('.sidebar nav > ul > li')).value;
 
-    yield this.selectTab('browser');
+    yield this.navigateTo('http://localhost:8080');
     yield this.pinCurrentTab();
 
     const sidebarItemsAfterAdd = (yield client.elements('.sidebar nav > ul > li')).value;

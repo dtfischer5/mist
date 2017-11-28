@@ -275,6 +275,7 @@ const Utils = {
     },
     * openAndFocusNewWindow(type, fnPromise) {
         yield fnPromise();
+        yield this.delay(1000);
         const handle = yield this.selectWindowHandleByType(type);
         yield this.client.window(handle);
     },
@@ -399,21 +400,33 @@ const Utils = {
 
     * pinCurrentTab() {
         const client = this.client;
-
         yield this.openAndFocusNewWindow('generic', () => {
             return client.click('span.connect-button');
         });
+        yield this.delay(500);
         yield client.click('.dapp-primary-button');
-
-        console.log(`∆∆∆ pinCurrentTab: ${this.mainWindowHandle}`);
-        const windowHandles = (yield client.windowHandles()).value;
-        console.log(`∆∆∆ windowHandles ${windowHandles}`);
+        yield this.delay(1000);
         yield client.window(this.mainWindowHandle); // selects main window again
-        yield Q.delay(1000);
+
+        const browserBarText = yield this.getBrowserBarText();
+        console.log('∆∆∆ browserBarText', browserBarText);
+
+        yield this.waitUntil('expected to have 3 pinned items', async () => {
+            const sidebarItemsAfterAdd = (await client.elements('.sidebar nav > ul > li')).value;
+            console.log('∆∆∆ sidebarItemsAfterAdd', sidebarItemsAfterAdd);
+            return sidebarItemsAfterAdd.length === 3;
+        });
 
         const pinnedWebview = (yield client.windowHandles()).value.pop();
         return pinnedWebview;
     },
+
+    * delay(ms) {
+        yield this.waitUntil('delay', async () => {
+            return new Promise(resolve => setTimeout(() => resolve(true), ms));
+        });
+    },
+
     * navigateTo(url) {
         const client = this.client;
         yield client.setValue('#url-input', url);
